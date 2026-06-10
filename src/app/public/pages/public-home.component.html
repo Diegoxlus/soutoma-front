@@ -1,0 +1,222 @@
+<main class="public-shell">
+  <aside class="public-sidebar" aria-label="Navegación pública">
+    <div class="brand">
+      <p>Soutoma Padel</p>
+      <h1>Torneo</h1>
+    </div>
+
+    <nav class="public-nav" aria-label="Secciones">
+      <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
+        <span>Cuadros</span>
+        <small>Cuadros publicados</small>
+      </a>
+      <a routerLink="/matches" routerLinkActive="is-active">
+        <span>Partidos</span>
+        <small>Agenda y resultados</small>
+      </a>
+    </nav>
+
+    <a class="admin-link" routerLink="/admin">Admin</a>
+  </aside>
+
+  <section class="public-main">
+    @if (activeSection() === 'brackets') {
+      <header class="page-header">
+        <div>
+          <p>Cuadros</p>
+          <h2>Cuadros del torneo</h2>
+        </div>
+      </header>
+
+      @if (state() === 'loading') {
+        <div class="status-panel">
+          <span class="loader" aria-hidden="true"></span>
+          <p>Cargando cuadros...</p>
+        </div>
+      } @else if (state() === 'error') {
+        <div class="status-panel status-panel--error">
+          <h3>No se pudo conectar con la API</h3>
+          <p>Comprueba que el backend siga activo en el puerto 8080.</p>
+        </div>
+      } @else if (mainBrackets().length === 0) {
+        <div class="status-panel">
+          <h3>No hay cuadros publicados</h3>
+          <p>Cuando se publiquen desde administración aparecerán aquí.</p>
+        </div>
+      } @else {
+        <div class="bracket-grid">
+          @for (bracket of mainBrackets(); track bracket.id) {
+            <article class="bracket-card">
+              <div>
+                <p class="round">{{ bracket.numberOfPairs }} parejas</p>
+                <h3>{{ bracket.name }}</h3>
+                @if (bracket.description) {
+                  <p class="description">{{ bracket.description }}</p>
+                }
+              </div>
+              <div class="card-actions">
+                <a class="primary-card-action" [routerLink]="['/brackets', bracket.id]">Cuadro principal</a>
+                @if (bracket.consolationBracketId) {
+                  <a class="secondary-card-action" [routerLink]="['/brackets', bracket.consolationBracketId]">
+                    Consolación
+                  </a>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    } @else {
+      <header class="page-header page-header--filters">
+        <div>
+          <p>Partidos</p>
+          <h2>Enfrentamientos</h2>
+        </div>
+
+        <form class="filters" aria-label="Filtros de partidos">
+          <label>
+            <span>Cuadro</span>
+            <select [ngModel]="selectedBracketId() ?? ''" name="bracketId" (ngModelChange)="onBracketFilter($event)">
+              <option value="">Todos los cuadros</option>
+              @for (bracket of brackets(); track bracket.id) {
+                <option [value]="bracket.id">{{ bracket.name }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Fecha</span>
+            <input
+              type="date"
+              [ngModel]="selectedDate()"
+              name="date"
+              (ngModelChange)="onDateFilter($event)"
+            />
+          </label>
+        </form>
+      </header>
+
+      @if (matchesState() === 'loading') {
+        <div class="status-panel">
+          <span class="loader" aria-hidden="true"></span>
+          <p>Cargando partidos...</p>
+        </div>
+      } @else if (matchesState() === 'error') {
+        <div class="status-panel status-panel--error">
+          <h3>No se pudieron cargar los partidos</h3>
+          <p>Comprueba que la API pública responde correctamente.</p>
+        </div>
+      } @else if (matches().length === 0) {
+        <div class="status-panel">
+          <h3>No hay partidos para esta selección</h3>
+          <p>Ajusta el cuadro o la fecha para consultar otros enfrentamientos.</p>
+        </div>
+      } @else {
+        <section class="matches-header" aria-label="Resumen de partidos">
+          <span>{{ totalMatches() }} partidos</span>
+          <span>Página {{ matchPage() + 1 }} de {{ totalMatchPages() }}</span>
+        </section>
+
+        <section class="match-list" aria-label="Listado de enfrentamientos">
+          @for (match of matches(); track match.id) {
+            <article class="match-card">
+              <header class="match-topline">
+                <div>
+                  <strong>{{ bracketName(match.bracketId) }}</strong>
+                  <span>{{ match.round }} · Partido {{ match.positionNumber }}</span>
+                </div>
+                <div class="match-time">
+                  @if (match.scheduledAt) {
+                    {{ match.scheduledAt | date: 'dd/MM/yyyy HH:mm' }}
+                  } @else {
+                    Sin hora
+                  }
+                </div>
+              </header>
+
+              <div class="match-pairs">
+                <div class="pair-row" [class.is-winner]="isWinner(match, match.pairA)">
+                  <div class="pair-players">
+                    <span class="match-player">
+                      <span class="match-avatar">
+                        @if (match.pairA?.playerOne?.imageBase64) {
+                          <img [src]="match.pairA?.playerOne?.imageBase64" alt="" />
+                        } @else {
+                          <span>{{ playerInitials(match.pairA?.playerOne) }}</span>
+                        }
+                      </span>
+                      <strong>{{ match.pairA?.playerOne?.displayName || 'Pendiente' }}</strong>
+                    </span>
+                    <span class="match-player">
+                      <span class="match-avatar">
+                        @if (match.pairA?.playerTwo?.imageBase64) {
+                          <img [src]="match.pairA?.playerTwo?.imageBase64" alt="" />
+                        } @else {
+                          <span>{{ playerInitials(match.pairA?.playerTwo) }}</span>
+                        }
+                      </span>
+                      <strong>{{ match.pairA?.playerTwo?.displayName || 'Pendiente' }}</strong>
+                    </span>
+                  </div>
+                  @if (match.byeA) {
+                    <span class="bye-pill">BYE</span>
+                  }
+                </div>
+
+                <div class="versus">VS</div>
+
+                <div class="pair-row" [class.is-winner]="isWinner(match, match.pairB)">
+                  <div class="pair-players">
+                    <span class="match-player">
+                      <span class="match-avatar">
+                        @if (match.pairB?.playerOne?.imageBase64) {
+                          <img [src]="match.pairB?.playerOne?.imageBase64" alt="" />
+                        } @else {
+                          <span>{{ playerInitials(match.pairB?.playerOne) }}</span>
+                        }
+                      </span>
+                      <strong>{{ match.pairB?.playerOne?.displayName || 'Pendiente' }}</strong>
+                    </span>
+                    <span class="match-player">
+                      <span class="match-avatar">
+                        @if (match.pairB?.playerTwo?.imageBase64) {
+                          <img [src]="match.pairB?.playerTwo?.imageBase64" alt="" />
+                        } @else {
+                          <span>{{ playerInitials(match.pairB?.playerTwo) }}</span>
+                        }
+                      </span>
+                      <strong>{{ match.pairB?.playerTwo?.displayName || 'Pendiente' }}</strong>
+                    </span>
+                  </div>
+                  @if (match.byeB) {
+                    <span class="bye-pill">BYE</span>
+                  }
+                </div>
+              </div>
+
+              <footer>
+                <span class="status-pill">{{ match.status || 'PENDIENTE' }}</span>
+                @if (match.resultText) {
+                  <strong>{{ match.resultText }}</strong>
+                }
+              </footer>
+            </article>
+          }
+        </section>
+
+        <nav class="pagination" aria-label="Paginación de partidos">
+          <button type="button" [disabled]="matchPage() === 0" (click)="goToMatchPage(matchPage() - 1)">
+            Anterior
+          </button>
+          <button
+            type="button"
+            [disabled]="matchPage() + 1 >= totalMatchPages()"
+            (click)="goToMatchPage(matchPage() + 1)"
+          >
+            Siguiente
+          </button>
+        </nav>
+      }
+    }
+  </section>
+</main>

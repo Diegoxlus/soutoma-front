@@ -1,0 +1,271 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.admin-shell {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  min-height: 100vh;
+  background: #f5f7fb;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  align-self: start;
+  min-height: 100vh;
+  padding: 28px 18px;
+  background: #113f67;
+  color: #fff;
+}
+
+.brand p,
+.admin-header p {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+.admin-nav {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-nav a {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #dceaf7;
+  text-decoration: none;
+}
+
+.admin-nav a:hover,
+.admin-nav a.is-active {
+  border-color: rgb(255 255 255 / 22%);
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+}
+
+.admin-nav span {
+  font-weight: 800;
+}
+
+.admin-nav small {
+  color: inherit;
+  font-size: 0.82rem;
+  opacity: 0.78;
+}
+
+button,
+.primary-action {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgb(255 255 255 / 42%);
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.logout-button {
+  width: 100%;
+  margin-top: auto;
+}
+
+.admin-main {
+  display: grid;
+  align-content: start;
+  gap: 22px;
+  padding: 36px clamp(20px, 4vw, 56px);
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.admin-header p {
+  color: #0a7c72;
+}
+
+.admin-header h2 {
+  color: #172033;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.section-description {
+  color: #66758c;
+  font-size: 1rem;
+}
+
+.primary-action {
+  border-color: #113f67;
+  background: #113f67;
+}
+
+.empty-state {
+  display: grid;
+  gap: 8px;
+  min-height: 220px;
+  align-content: center;
+  padding: 28px;
+  border: 1px solid #d9e2ef;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgb(32 50 79 / 8%);
+}
+
+.empty-state h3 {
+  color: #172033;
+  font-size: 1.25rem;
+}
+
+.empty-state p {
+  color: #66758c;
+}
+
+.empty-state--error {
+  border-color: #f0b6b6;
+  background: #fff8f8;
+}
+
+.table-card {
+  overflow-x: auto;
+  border: 1px solid #d9e2ef;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgb(32 50 79 / 8%);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e8eef6;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  color: #66758c;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+td {
+  color: #26364d;
+}
+
+.row-title,
+td span {
+  display: block;
+}
+
+.row-title {
+  color: #0a7c72;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+td span {
+  margin-top: 4px;
+  color: #66758c;
+  font-size: 0.9rem;
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.row-actions a,
+.row-actions button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid #d9e2ef;
+  border-radius: 6px;
+  background: #fff;
+  color: #0a7c72;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.row-actions button {
+  color: #b42318;
+}
+
+.row-actions .consolation-action {
+  border-color: #159a8c;
+  background: #e9faf7;
+  color: #0a7c72;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+@media (max-width: 760px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    min-height: auto;
+  }
+
+  .logout-button {
+    margin-top: 0;
+  }
+
+  .admin-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .primary-action {
+    width: 100%;
+  }
+}

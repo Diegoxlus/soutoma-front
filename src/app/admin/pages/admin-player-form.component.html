@@ -1,0 +1,102 @@
+<main class="admin-shell">
+  <aside class="sidebar" aria-label="Administración">
+    <div class="brand">
+      <p>Soutoma Padel</p>
+      <h1>Admin</h1>
+    </div>
+
+    <nav class="admin-nav" aria-label="Secciones">
+      @for (item of navItems; track item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/admin' || item.route === '/players' }"
+        >
+          <span>{{ item.label }}</span>
+          <small>{{ item.description }}</small>
+        </a>
+      }
+    </nav>
+
+    <button class="logout-button" type="button" (click)="logout()">Cerrar sesión</button>
+  </aside>
+
+  <section class="form-main">
+    <a class="back-link" routerLink="/players">Volver a jugadores</a>
+
+    <header>
+      <p>{{ isEdit ? 'Editar jugador' : 'Nuevo jugador' }}</p>
+      <h2>{{ isEdit ? 'Editar jugador' : 'Crear jugador' }}</h2>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="form-row">
+        <label>
+          Nombre
+          <input type="text" formControlName="name" autocomplete="off" />
+        </label>
+
+        <label>
+          Apellidos
+          <input type="text" formControlName="surnames" autocomplete="off" />
+        </label>
+      </div>
+
+      <div class="form-row">
+        <label>
+          DNI
+          <input type="text" formControlName="dni" autocomplete="off" />
+        </label>
+
+        <label>
+          Teléfono
+          <input type="tel" formControlName="phone" autocomplete="off" />
+        </label>
+      </div>
+
+      <label>
+        Género
+        <select formControlName="gender">
+          <option value="">Sin especificar</option>
+          <option value="MASCULINO">Masculino</option>
+          <option value="FEMENINO">Femenino</option>
+        </select>
+      </label>
+
+      <section class="image-field" aria-label="Imagen de perfil">
+        <div class="profile-preview">
+          @if (imagePreview()) {
+            <img [src]="imagePreview()" alt="Imagen actual del jugador" />
+          } @else {
+            <span>{{ form.controls.name.value.charAt(0) || '?' }}</span>
+          }
+        </div>
+
+        <div class="image-controls">
+          <label>
+            Imagen de perfil
+            <input type="file" accept="image/*" (change)="onImageSelected($event)" />
+          </label>
+          @if (imagePreview()) {
+            <button class="secondary-button" type="button" (click)="removeImage()">Quitar imagen</button>
+          }
+          <input type="hidden" formControlName="imageBase64" />
+          @if (imageError()) {
+            <p class="form-error">{{ imageError() }}</p>
+          }
+        </div>
+      </section>
+
+      @if (saveError()) {
+        <p class="form-error">{{ saveError() }}</p>
+      }
+
+      <div class="form-actions">
+        <a class="secondary-action" routerLink="/players">Cancelar</a>
+        <button type="submit" [disabled]="saving()">
+          {{ saving() ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear jugador' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</main>

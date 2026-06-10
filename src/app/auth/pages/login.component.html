@@ -1,0 +1,30 @@
+<main class="login-shell">
+  <section class="login-panel" aria-labelledby="login-title">
+    <a class="back-link" routerLink="/">Volver a cuadros</a>
+
+    <div class="heading">
+      <p>Administración</p>
+      <h1 id="login-title">Iniciar sesión</h1>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <label>
+        Usuario
+        <input type="text" formControlName="username" autocomplete="username" />
+      </label>
+
+      <label>
+        Contraseña
+        <input type="password" formControlName="password" autocomplete="current-password" />
+      </label>
+
+      @if (loginError()) {
+        <p class="form-error">Usuario o contraseña incorrectos.</p>
+      }
+
+      <button type="submit" [disabled]="loading()">
+        {{ loading() ? 'Entrando...' : 'Entrar' }}
+      </button>
+    </form>
+  </section>
+</main>

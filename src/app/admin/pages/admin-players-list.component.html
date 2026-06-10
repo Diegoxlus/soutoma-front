@@ -1,0 +1,118 @@
+<main class="admin-shell">
+  <aside class="sidebar" aria-label="Administración">
+    <div class="brand">
+      <p>Soutoma Padel</p>
+      <h1>Admin</h1>
+    </div>
+
+    <nav class="admin-nav" aria-label="Secciones">
+      @for (item of navItems; track item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/admin' || item.route === '/players' }"
+        >
+          <span>{{ item.label }}</span>
+          <small>{{ item.description }}</small>
+        </a>
+      }
+    </nav>
+
+    <button class="logout-button" type="button" (click)="logout()">Cerrar sesión</button>
+  </aside>
+
+  <section class="admin-main">
+    <header class="admin-header">
+      <div>
+        <p>Gestión</p>
+        <h2>Jugadores</h2>
+      </div>
+      <a class="primary-action" routerLink="/players/new">Nuevo jugador</a>
+    </header>
+
+    <form class="filters-card" [formGroup]="filtersForm" (ngSubmit)="applyFilters()">
+      <label>
+        Nombre o apellido
+        <input type="search" formControlName="search" placeholder="Buscar jugador" />
+      </label>
+
+      <label>
+        Género
+        <select formControlName="gender">
+          <option value="">Todos</option>
+          <option value="MASCULINO">Masculino</option>
+          <option value="FEMENINO">Femenino</option>
+        </select>
+      </label>
+
+      <div class="filter-actions">
+        <button type="submit">Filtrar</button>
+        <button class="secondary-button" type="button" (click)="clearFilters()">Limpiar</button>
+      </div>
+    </form>
+
+    @if (state() === 'loading') {
+      <div class="empty-state">
+        <h3>Cargando jugadores...</h3>
+        <p>Estamos consultando la API de administración.</p>
+      </div>
+    } @else if (state() === 'error') {
+      <div class="empty-state empty-state--error">
+        <h3>No se pudieron cargar los jugadores</h3>
+        <p>Comprueba que la sesión sigue activa y que el backend responde.</p>
+      </div>
+    } @else if (!page()?.content?.length) {
+      <div class="empty-state">
+        <h3>No hay jugadores</h3>
+        <p>Prueba con otros filtros o añade el primer jugador.</p>
+      </div>
+    } @else {
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Jugador</th>
+              <th>Género</th>
+              <th>DNI</th>
+              <th>Teléfono</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (player of page()?.content; track player.id) {
+              <tr>
+                <td>
+                  <div class="player-cell">
+                    <div class="avatar-ring">
+                      @if (player.imageBase64) {
+                        <img [src]="player.imageBase64" alt="" />
+                      } @else {
+                        <span>{{ playerInitials(player) }}</span>
+                      }
+                    </div>
+                    <div class="player-details">
+                      <strong>{{ displayName(player) }}</strong>
+                      <span>{{ player.name }} {{ player.surnames }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ player.gender || '-' }}</td>
+                <td>{{ player.dni || '-' }}</td>
+                <td>{{ player.phone || '-' }}</td>
+                <td>
+                  <button class="link-button" type="button" (click)="editPlayer(player)">Editar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="pagination">
+        <button type="button" [disabled]="page()?.first" (click)="previousPage()">Anterior</button>
+        <span>Página {{ (page()?.page ?? 0) + 1 }} de {{ page()?.totalPages || 1 }}</span>
+        <button type="button" [disabled]="page()?.last" (click)="nextPage()">Siguiente</button>
+      </footer>
+    }
+  </section>
+</main>

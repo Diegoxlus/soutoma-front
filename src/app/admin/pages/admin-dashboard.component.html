@@ -1,0 +1,114 @@
+<main class="admin-shell">
+  <aside class="sidebar" aria-label="Administración">
+    <div class="brand">
+      <p>Soutoma Padel</p>
+      <h1>Admin</h1>
+    </div>
+
+    <nav class="admin-nav" aria-label="Secciones">
+      @for (item of navItems; track item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/admin' }"
+        >
+          <span>{{ item.label }}</span>
+          <small>{{ item.description }}</small>
+        </a>
+      }
+    </nav>
+
+    <button class="logout-button" type="button" (click)="logout()">Cerrar sesión</button>
+  </aside>
+
+  <section class="admin-main">
+    <header class="admin-header">
+      <div>
+        <p>{{ section().eyebrow }}</p>
+        <h2>{{ section().title }}</h2>
+      </div>
+
+      @if (section().action) {
+        <a class="primary-action" [routerLink]="section().actionRoute">{{ section().action }}</a>
+      }
+    </header>
+
+    <p class="section-description">{{ section().description }}</p>
+
+    @if (isBracketsSection()) {
+      @if (bracketsState() === 'loading') {
+        <div class="empty-state">
+          <h3>Cargando cuadros...</h3>
+          <p>Estamos consultando la API de administración.</p>
+        </div>
+      } @else if (bracketsState() === 'error') {
+        <div class="empty-state empty-state--error">
+          <h3>No se pudieron cargar los cuadros</h3>
+          <p>Comprueba que la sesión sigue activa y que el backend responde en el puerto 8080.</p>
+        </div>
+      } @else if (mainBrackets().length === 0) {
+        <div class="empty-state">
+          <h3>{{ section().emptyTitle }}</h3>
+          <p>{{ section().emptyText }}</p>
+        </div>
+      } @else {
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Género</th>
+                <th>Parejas</th>
+                <th>Orden</th>
+                <th>Visible</th>
+                <th>Actualizado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (bracket of mainBrackets(); track bracket.id) {
+                <tr>
+                  <td>
+                    <a class="row-title" [routerLink]="['/admin/brackets', bracket.id]">
+                      {{ bracket.name }}
+                    </a>
+                    @if (bracket.description) {
+                      <span>{{ bracket.description }}</span>
+                    }
+                  </td>
+                  <td>{{ bracket.gender }}</td>
+                  <td>{{ bracket.numberOfPairs }}</td>
+                  <td>{{ bracket.orderNumber }}</td>
+                  <td>{{ bracket.publicVisible ? 'Sí' : 'No' }}</td>
+                  <td>
+                    @if (bracket.updatedAt) {
+                      {{ bracket.updatedAt | date: 'dd/MM/yyyy HH:mm' }}
+                    } @else {
+                      -
+                    }
+                  </td>
+                  <td>
+                    <div class="row-actions">
+                      @if (bracket.consolationBracketId) {
+                        <a class="consolation-action" [routerLink]="['/admin/brackets', bracket.consolationBracketId]">
+                          Consolación
+                        </a>
+                      }
+                      <a [routerLink]="['/admin/brackets', bracket.id, 'edit']">Editar</a>
+                      <button type="button" (click)="deleteBracket(bracket.id, bracket.name)">Eliminar</button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    } @else {
+      <div class="empty-state">
+        <h3>{{ section().emptyTitle }}</h3>
+        <p>{{ section().emptyText }}</p>
+      </div>
+    }
+  </section>
+</main>

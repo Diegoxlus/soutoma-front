@@ -1,0 +1,129 @@
+<main class="bracket-page">
+  <header class="hero">
+    <a routerLink="/">Volver a cuadros</a>
+
+    @if (bracket()) {
+      <p>{{ bracket()?.gender }} · {{ bracket()?.numberOfPairs }} parejas</p>
+      <h1>{{ bracket()?.name }}</h1>
+      @if (bracket()?.description) {
+        <span>{{ bracket()?.description }}</span>
+      }
+    } @else {
+      <p>Soutoma Padel</p>
+      <h1>Cuadro del torneo</h1>
+    }
+  </header>
+
+  @if (state() === 'loading') {
+    <section class="status-panel">
+      <h2>Cargando enfrentamientos...</h2>
+      <p>Estamos preparando la visualización del cuadro.</p>
+    </section>
+  } @else if (state() === 'error') {
+    <section class="status-panel status-panel--error">
+      <h2>No se pudo cargar el cuadro</h2>
+      <p>Comprueba que el cuadro está publicado y vuelve a intentarlo.</p>
+    </section>
+  } @else if (rounds().length === 0) {
+    <section class="status-panel">
+      <h2>Enfrentamientos no generados</h2>
+      <p>Cuando la organización genere el cuadro, los partidos aparecerán aquí.</p>
+    </section>
+  } @else {
+    <section class="bracket-board" aria-label="Enfrentamientos">
+      @for (round of rounds(); track round.key) {
+        <section class="round-column">
+          <header>
+            <h2>{{ round.label }}</h2>
+            <span>{{ round.matches.length }} partidos</span>
+          </header>
+
+          <div class="match-stack">
+            @for (match of round.matches; track match.id) {
+              <article class="match-card">
+                <div class="match-meta">
+                  <span>Partido {{ match.positionNumber }}</span>
+                  <span>{{ match.status || 'PENDIENTE' }}</span>
+                </div>
+
+                <button
+                  class="pair-row"
+                  type="button"
+                  [class.is-winner]="isWinner(match, match.pairA)"
+                  [class.is-highlighted]="isPairHighlighted(match.pairA)"
+                  (click)="selectPair(match.pairA)"
+                >
+                  <div class="pair-players">
+                    <span class="match-player">
+                      <span class="match-avatar">
+                        @if (match.pairA?.playerOne?.imageBase64) {
+                          <img [src]="match.pairA?.playerOne?.imageBase64" alt="" />
+                        } @else {
+                          <span>{{ playerInitials(match.pairA?.playerOne) }}</span>
+                        }
+                      </span>
+                      <strong>{{ match.pairA?.playerOne?.displayName || 'Pendiente' }}</strong>
+                    </span>
+                    <span class="match-player">
+                      <span class="match-avatar">
+                        @if (match.pairA?.playerTwo?.imageBase64) {
+                          <img [src]="match.pairA?.playerTwo?.imageBase64" alt="" />
+                        } @else {
+                          <span>{{ playerInitials(match.pairA?.playerTwo) }}</span>
+                        }
+                      </span>
+                      <strong>{{ match.pairA?.playerTwo?.displayName || 'Pendiente' }}</strong>
+                    </span>
+                  </div>
+                  @if (match.byeA) {
+                    <span>BYE</span>
+                  }
+                </button>
+
+                <button
+                  class="pair-row"
+                  type="button"
+                  [class.is-winner]="isWinner(match, match.pairB)"
+                  [class.is-highlighted]="isPairHighlighted(match.pairB)"
+                  (click)="selectPair(match.pairB)"
+                >
+                  <div class="pair-players">
+                    <span class="match-player">
+                      <span class="match-avatar">
+                        @if (match.pairB?.playerOne?.imageBase64) {
+                          <img [src]="match.pairB?.playerOne?.imageBase64" alt="" />
+                        } @else {
+                          <span>{{ playerInitials(match.pairB?.playerOne) }}</span>
+                        }
+                      </span>
+                      <strong>{{ match.pairB?.playerOne?.displayName || 'Pendiente' }}</strong>
+                    </span>
+                    <span class="match-player">
+                      <span class="match-avatar">
+                        @if (match.pairB?.playerTwo?.imageBase64) {
+                          <img [src]="match.pairB?.playerTwo?.imageBase64" alt="" />
+                        } @else {
+                          <span>{{ playerInitials(match.pairB?.playerTwo) }}</span>
+                        }
+                      </span>
+                      <strong>{{ match.pairB?.playerTwo?.displayName || 'Pendiente' }}</strong>
+                    </span>
+                  </div>
+                  @if (match.byeB) {
+                    <span>BYE</span>
+                  }
+                </button>
+
+                @if (match.resultText) {
+                  <footer>{{ match.resultText }}</footer>
+                } @else if (match.scheduledAt) {
+                  <footer>{{ match.scheduledAt | date: 'dd/MM/yyyy HH:mm' }}</footer>
+                }
+              </article>
+            }
+          </div>
+        </section>
+      }
+    </section>
+  }
+</main>

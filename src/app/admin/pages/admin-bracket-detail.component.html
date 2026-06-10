@@ -1,0 +1,403 @@
+<main class="admin-shell">
+  <aside class="sidebar" aria-label="Administración">
+    <div class="brand">
+      <p>Soutoma Padel</p>
+      <h1>Admin</h1>
+    </div>
+
+    <nav class="admin-nav" aria-label="Secciones">
+      @for (item of navItems; track item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/admin' }"
+        >
+          <span>{{ item.label }}</span>
+          <small>{{ item.description }}</small>
+        </a>
+      }
+    </nav>
+
+    <button class="logout-button" type="button" (click)="logout()">Cerrar sesión</button>
+  </aside>
+
+  <section class="detail-main">
+    <a class="back-link" routerLink="/admin/brackets">Volver a cuadros</a>
+
+    @if (bracketState() === 'loading') {
+      <div class="empty-state">
+        <h2>Cargando cuadro...</h2>
+        <p>Estamos consultando el detalle.</p>
+      </div>
+    } @else if (bracketState() === 'error' || !bracket()) {
+      <div class="empty-state empty-state--error">
+        <h2>No se pudo cargar el cuadro</h2>
+        <p>Comprueba que existe y que tu sesión sigue activa.</p>
+      </div>
+    } @else {
+      <header class="detail-hero">
+        <div>
+          <p>{{ bracket()?.gender }}</p>
+          <h2>{{ bracket()?.name }}</h2>
+          @if (bracket()?.description) {
+            <span>{{ bracket()?.description }}</span>
+          }
+        </div>
+        <div class="hero-actions">
+          <button type="button" (click)="openPairModal()">Añadir pareja</button>
+          <button type="button" [disabled]="generating()" (click)="generateMatches()">
+            {{ generating() ? 'Generando...' : 'Generar enfrentamientos' }}
+          </button>
+        </div>
+      </header>
+
+      @if (generateError()) {
+        <p class="form-error">{{ generateError() }}</p>
+      }
+
+      <section class="stats-grid" aria-label="Resumen del cuadro">
+        <article>
+          <span>Parejas</span>
+          <strong>{{ pairSlotsText() }}</strong>
+        </article>
+        <article>
+          <span>Orden</span>
+          <strong>{{ bracket()?.orderNumber }}</strong>
+        </article>
+        <article>
+          <span>Visible</span>
+          <strong>{{ bracket()?.publicVisible ? 'Sí' : 'No' }}</strong>
+        </article>
+        <article>
+          <span>Actualizado</span>
+          <strong>
+            @if (bracket()?.updatedAt) {
+              {{ bracket()?.updatedAt | date: 'dd/MM/yyyy HH:mm' }}
+            } @else {
+              -
+            }
+          </strong>
+        </article>
+      </section>
+
+      @if (hasGeneratedMatches()) {
+        <section class="matches-section">
+          <div class="section-heading">
+            <div>
+              <p>Cuadro generado</p>
+              <h3>Enfrentamientos</h3>
+            </div>
+            @if (selectedPairId()) {
+              <button class="secondary-button" type="button" (click)="selectedPairId.set(null)">Quitar resaltado</button>
+            }
+          </div>
+
+          <div class="bracket-board" aria-label="Enfrentamientos">
+            @for (round of rounds(); track round.key) {
+              <section class="round-column">
+                <header>
+                  <h4>{{ round.label }}</h4>
+                  <span>{{ round.matches.length }} partidos</span>
+                </header>
+
+                <div class="match-stack">
+                  @for (match of round.matches; track match.id) {
+                    <article class="match-card">
+                      <div class="match-toolbar">
+                        <span>Partido {{ match.positionNumber }}</span>
+                        <div>
+                          <button
+                            class="icon-button"
+                            type="button"
+                            title="Añadir fecha/hora"
+                            aria-label="Añadir fecha/hora"
+                            (click)="openScheduleModal(match)"
+                          >
+                            ◷
+                          </button>
+                          <button
+                            class="icon-button"
+                            type="button"
+                            title="Añadir resultado"
+                            aria-label="Añadir resultado"
+                            (click)="openResultModal(match)"
+                          >
+                            ▦
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        class="pair-row"
+                        type="button"
+                        draggable="true"
+                        [class.is-winner]="isWinner(match, match.pairA)"
+                        [class.is-highlighted]="isPairHighlighted(match.pairA)"
+                        (click)="selectPair(match.pairA)"
+                        (dragstart)="onPairDragStart($event, match, 'A')"
+                        (dragend)="onPairDragEnd()"
+                        (dragover)="allowDrop($event)"
+                        (drop)="onPairDrop($event, match, 'A')"
+                      >
+                        <div class="pair-players">
+                          <span class="match-player">
+                            <span class="match-avatar">
+                              @if (match.pairA?.playerOne?.imageBase64) {
+                                <img [src]="match.pairA?.playerOne?.imageBase64" alt="" />
+                              } @else {
+                                <span>{{ playerInitials(match.pairA?.playerOne) }}</span>
+                              }
+                            </span>
+                            <strong>{{ match.pairA?.playerOne?.displayName || 'Pendiente' }}</strong>
+                          </span>
+                          <span class="match-player">
+                            <span class="match-avatar">
+                              @if (match.pairA?.playerTwo?.imageBase64) {
+                                <img [src]="match.pairA?.playerTwo?.imageBase64" alt="" />
+                              } @else {
+                                <span>{{ playerInitials(match.pairA?.playerTwo) }}</span>
+                              }
+                            </span>
+                            <strong>{{ match.pairA?.playerTwo?.displayName || 'Pendiente' }}</strong>
+                          </span>
+                        </div>
+                        @if (match.byeA) {
+                          <span>BYE</span>
+                        }
+                      </button>
+
+                      <button
+                        class="pair-row"
+                        type="button"
+                        draggable="true"
+                        [class.is-winner]="isWinner(match, match.pairB)"
+                        [class.is-highlighted]="isPairHighlighted(match.pairB)"
+                        (click)="selectPair(match.pairB)"
+                        (dragstart)="onPairDragStart($event, match, 'B')"
+                        (dragend)="onPairDragEnd()"
+                        (dragover)="allowDrop($event)"
+                        (drop)="onPairDrop($event, match, 'B')"
+                      >
+                        <div class="pair-players">
+                          <span class="match-player">
+                            <span class="match-avatar">
+                              @if (match.pairB?.playerOne?.imageBase64) {
+                                <img [src]="match.pairB?.playerOne?.imageBase64" alt="" />
+                              } @else {
+                                <span>{{ playerInitials(match.pairB?.playerOne) }}</span>
+                              }
+                            </span>
+                            <strong>{{ match.pairB?.playerOne?.displayName || 'Pendiente' }}</strong>
+                          </span>
+                          <span class="match-player">
+                            <span class="match-avatar">
+                              @if (match.pairB?.playerTwo?.imageBase64) {
+                                <img [src]="match.pairB?.playerTwo?.imageBase64" alt="" />
+                              } @else {
+                                <span>{{ playerInitials(match.pairB?.playerTwo) }}</span>
+                              }
+                            </span>
+                            <strong>{{ match.pairB?.playerTwo?.displayName || 'Pendiente' }}</strong>
+                          </span>
+                        </div>
+                        @if (match.byeB) {
+                          <span>BYE</span>
+                        }
+                      </button>
+
+                      <footer>
+                        @if (match.resultText) {
+                          <span>{{ match.resultText }}</span>
+                        }
+                        @if (match.scheduledAt) {
+                          <span>{{ match.scheduledAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                        }
+                      </footer>
+                    </article>
+                  }
+                </div>
+              </section>
+            }
+          </div>
+        </section>
+      }
+
+      <details class="pairs-section" [open]="!hasGeneratedMatches()">
+        <summary>
+          <div>
+            <p>Inscripciones</p>
+            <h3>Parejas inscritas</h3>
+          </div>
+          <span>{{ hasGeneratedMatches() ? 'Ver listado' : 'Listado abierto' }}</span>
+        </summary>
+
+        @if (pairsState() === 'loading') {
+          <div class="empty-state">
+            <h3>Cargando parejas...</h3>
+            <p>Estamos consultando las parejas inscritas.</p>
+          </div>
+        } @else if (pairsState() === 'error') {
+          <div class="empty-state empty-state--error">
+            <h3>No se pudieron cargar las parejas</h3>
+            <p>Comprueba que el backend responde correctamente.</p>
+          </div>
+        } @else if (!pairsPage()?.content?.length) {
+          <div class="empty-state">
+            <h3>No hay parejas inscritas</h3>
+            <p>Añade la primera pareja con el botón superior.</p>
+          </div>
+        } @else {
+          <div class="pairs-grid">
+            @for (registeredPair of pairsPage()?.content; track registeredPair.id) {
+              <article class="pair-card">
+                <div class="pair-card-header">
+                  <span>Pareja {{ registeredPair.id }}</span>
+                  <button
+                    class="delete-pair-button"
+                    type="button"
+                    title="Eliminar pareja"
+                    aria-label="Eliminar pareja"
+                    [disabled]="deletingPairId() === registeredPair.id"
+                    (click)="deletePair(registeredPair)"
+                  ></button>
+                </div>
+                <div class="pair-card-body">
+                  <div class="player-pill">
+                    <span>1</span>
+                    <strong>{{ registeredPair.pair.playerOne?.displayName || '-' }}</strong>
+                  </div>
+                  <div class="player-pill">
+                    <span>2</span>
+                    <strong>{{ registeredPair.pair.playerTwo?.displayName || '-' }}</strong>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+
+          <footer class="pagination">
+            <button type="button" [disabled]="pairsPage()?.first" (click)="previousPairsPage()">Anterior</button>
+            <span>Página {{ (pairsPage()?.page ?? 0) + 1 }} de {{ pairsPage()?.totalPages || 1 }}</span>
+            <button type="button" [disabled]="pairsPage()?.last" (click)="nextPairsPage()">Siguiente</button>
+          </footer>
+        }
+      </details>
+    }
+  </section>
+
+  @if (modalOpen()) {
+    <div class="modal-backdrop" role="presentation">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="pair-modal-title">
+        <header>
+          <h3 id="pair-modal-title">Añadir pareja</h3>
+          <button type="button" (click)="closePairModal()">Cerrar</button>
+        </header>
+
+        <form [formGroup]="pairForm" (ngSubmit)="savePair()">
+          <label>
+            Jugador 1
+            <select formControlName="playerOneId">
+              <option [value]="0">Seleccionar</option>
+              @for (player of playersOne(); track player.id) {
+                <option [value]="player.id">{{ player.displayName || player.name + ' ' + player.surnames }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            Jugador 2
+            <select formControlName="playerTwoId">
+              <option [value]="0">Seleccionar</option>
+              @for (player of playersTwo(); track player.id) {
+                <option [value]="player.id">{{ player.displayName || player.name + ' ' + player.surnames }}</option>
+              }
+            </select>
+          </label>
+
+          @if (modalError()) {
+            <p class="form-error">{{ modalError() }}</p>
+          }
+
+          <div class="form-actions">
+            <button class="secondary-button" type="button" (click)="closePairModal()">Cancelar</button>
+            <button type="submit" [disabled]="savingPair()">
+              {{ savingPair() ? 'Añadiendo...' : 'Añadir pareja' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+
+  @if (scheduleModalOpen()) {
+    <div class="modal-backdrop" role="presentation">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="schedule-modal-title">
+        <header>
+          <h3 id="schedule-modal-title">Fecha y hora</h3>
+          <button type="button" (click)="closeMatchModals()">Cerrar</button>
+        </header>
+
+        <form [formGroup]="scheduleForm" (ngSubmit)="saveSchedule()">
+          <label>
+            Fecha/hora
+            <input type="datetime-local" formControlName="scheduledAt" />
+          </label>
+          <label>
+            Estado
+            <select formControlName="status">
+              <option value="PENDIENTE">Pendiente</option>
+              <option value="PROGRAMADO">Programado</option>
+              <option value="FINALIZADO">Finalizado</option>
+            </select>
+          </label>
+
+          @if (modalError()) {
+            <p class="form-error">{{ modalError() }}</p>
+          }
+
+          <div class="form-actions">
+            <button class="secondary-button" type="button" (click)="closeMatchModals()">Cancelar</button>
+            <button type="submit" [disabled]="savingMatch()">Guardar</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+
+  @if (resultModalOpen()) {
+    <div class="modal-backdrop" role="presentation">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="result-modal-title">
+        <header>
+          <h3 id="result-modal-title">Resultado</h3>
+          <button type="button" (click)="closeMatchModals()">Cerrar</button>
+        </header>
+
+        <form [formGroup]="resultForm" (ngSubmit)="saveResult()">
+          <label>
+            Ganador
+            <select formControlName="winnerPairId">
+              <option [value]="0">Seleccionar</option>
+              @for (pair of resultWinnerOptions(); track pair.id) {
+                <option [value]="pair.id">{{ pairName(pair) }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            Marcador
+            <input type="text" formControlName="resultText" placeholder="Ej. 6-4 7-5" />
+          </label>
+
+          @if (modalError()) {
+            <p class="form-error">{{ modalError() }}</p>
+          }
+
+          <div class="form-actions">
+            <button class="secondary-button" type="button" (click)="closeMatchModals()">Cancelar</button>
+            <button type="submit" [disabled]="savingMatch()">Guardar</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+</main>

@@ -1,0 +1,77 @@
+<main class="admin-shell">
+  <aside class="sidebar" aria-label="Administración">
+    <div class="brand">
+      <p>Soutoma Padel</p>
+      <h1>Admin</h1>
+    </div>
+
+    <nav class="admin-nav" aria-label="Secciones">
+      <a routerLink="/admin">Inicio</a>
+      <a routerLink="/admin/brackets" class="is-active">Cuadros</a>
+      <a routerLink="/players">Jugadores</a>
+      <a routerLink="/admin/sponsors">Patrocinadores</a>
+    </nav>
+  </aside>
+
+  <section class="form-main">
+    <a class="back-link" routerLink="/admin/brackets">Volver a cuadros</a>
+
+    <header>
+      <p>{{ isEdit ? 'Editar cuadro' : 'Nuevo cuadro' }}</p>
+      <h2>{{ isEdit ? 'Editar cuadro' : 'Crear cuadro' }}</h2>
+    </header>
+
+    @if (loading()) {
+      <div class="status-panel">Cargando cuadro...</div>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <label>
+          Nombre
+          <input type="text" formControlName="name" autocomplete="off" />
+        </label>
+
+        <label>
+          Descripción
+          <textarea formControlName="description" rows="4"></textarea>
+        </label>
+
+        <div class="form-row">
+          <label>
+            Número de parejas
+            <input type="number" min="2" max="64" step="1" formControlName="numberOfPairs" />
+          </label>
+
+          <label>
+            Género
+            <select formControlName="gender">
+              <option value="MASCULINO">Masculino</option>
+              <option value="FEMENINO">Femenino</option>
+              <option value="MIXTO">Mixto</option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          Orden
+          <input type="number" min="1" formControlName="orderNumber" />
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="publicVisible" />
+          Visible públicamente
+        </label>
+
+        @if (saveError()) {
+          <p class="form-error">No se pudo guardar el cuadro. Revisa los datos o la sesión.</p>
+        }
+
+        <div class="form-actions">
+          <a class="secondary-action" routerLink="/admin/brackets">Cancelar</a>
+          <button type="submit" [disabled]="saving()">
+            {{ saving() ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear cuadro' }}
+          </button>
+        </div>
+      </form>
+    }
+  </section>
+</main>
