@@ -1,4 +1,8 @@
 <main class="admin-shell">
+  <input class="admin-menu-toggle" type="checkbox" id="admin-menu-toggle" aria-label="Abrir menú de administración" />
+  <label class="admin-menu-button" for="admin-menu-toggle" aria-label="Abrir menú"><span></span></label>
+  <label class="admin-menu-backdrop" for="admin-menu-toggle" aria-label="Cerrar menú"></label>
+
   <aside class="sidebar" aria-label="Administración">
     <div class="brand">
       <p>Soutoma Padel</p>
@@ -17,7 +21,7 @@
     <a class="back-link" routerLink="/admin/brackets">Volver a cuadros</a>
 
     <header>
-      <p>{{ isEdit ? 'Editar cuadro' : 'Nuevo cuadro' }}</p>
+      <p>Cuadro</p>
       <h2>{{ isEdit ? 'Editar cuadro' : 'Crear cuadro' }}</h2>
     </header>
 

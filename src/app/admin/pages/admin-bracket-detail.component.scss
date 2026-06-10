@@ -212,6 +212,10 @@ button:disabled {
   font-size: 1.5rem;
 }
 
+.touch-swap-hint {
+  display: none;
+}
+
 .pairs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -382,6 +386,12 @@ button:disabled {
 .pair-row.is-highlighted {
   border-color: #2f80ed;
   background: #eaf3ff;
+}
+
+.pair-row.is-swap-origin {
+  border-color: #f5a623;
+  background: #fff7e6;
+  box-shadow: 0 0 0 3px rgb(245 166 35 / 18%);
 }
 
 .pair-players {
@@ -599,5 +609,33 @@ input {
   .form-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .touch-swap-hint {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #d9e2ef;
+    border-radius: 8px;
+    background: #fff;
+    color: #26364d;
+    font-weight: 800;
+  }
+
+  .touch-swap-hint.is-active {
+    border-color: #f5a623;
+    background: #fff7e6;
+  }
+
+  .touch-swap-hint span {
+    line-height: 1.35;
+  }
+
+  .touch-swap-hint button {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 0 10px;
   }
 }

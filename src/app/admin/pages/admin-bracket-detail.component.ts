@@ -44,6 +44,10 @@ interface DragPairPayload {
   side: MatchSide;
 }
 
+interface TouchSwapSelection extends DragPairPayload {
+  pairId: number | null;
+}
+
 @Component({
   selector: 'app-admin-bracket-detail',
   imports: [DatePipe, ReactiveFormsModule, RouterLink, RouterLinkActive],
@@ -71,8 +75,10 @@ export class AdminBracketDetailComponent implements OnDestroy {
   protected readonly resultModalOpen = signal(false);
   protected readonly activeMatch = signal<MatchResponse | null>(null);
   protected readonly selectedPairId = signal<number | null>(null);
+  protected readonly touchSwapSelection = signal<TouchSwapSelection | null>(null);
   protected readonly playersOne = signal<PlayerResponse[]>([]);
   protected readonly playersTwo = signal<PlayerResponse[]>([]);
+  protected readonly selectedPairPlayerOneId = signal(0);
   protected readonly modalError = signal<string | null>(null);
   protected readonly savingPair = signal(false);
   protected readonly deletingPairId = signal<number | null>(null);
@@ -114,6 +120,13 @@ export class AdminBracketDetailComponent implements OnDestroy {
 
   protected readonly hasGeneratedMatches = computed(() => this.rounds().length > 0);
 
+  protected readonly touchSwapText = computed(() => {
+    const selection = this.touchSwapSelection();
+    return selection
+      ? 'Origen seleccionado. Toca otra pareja o BYE para intercambiar.'
+      : 'En móvil: toca una pareja o BYE y luego toca el destino para intercambiar.';
+  });
+
   protected readonly pairSlotsText = computed(() => {
     const bracket = this.bracket();
     const total = this.pairsPage()?.totalElements ?? 0;
@@ -123,6 +136,11 @@ export class AdminBracketDetailComponent implements OnDestroy {
   protected readonly resultWinnerOptions = computed(() => {
     const match = this.activeMatch();
     return [match?.pairA, match?.pairB].filter((pair): pair is PairDto => Boolean(pair?.id));
+  });
+
+  protected readonly availablePlayersTwo = computed(() => {
+    const selectedPlayerOneId = this.selectedPairPlayerOneId();
+    return this.playersTwo().filter((player) => player.id !== selectedPlayerOneId);
   });
 
   private readonly pageSize = 8;
@@ -135,6 +153,7 @@ export class AdminBracketDetailComponent implements OnDestroy {
       const bracketId = Number(params.get('id'));
       this.bracketId.set(bracketId);
       this.selectedPairId.set(null);
+      this.touchSwapSelection.set(null);
       this.generateError.set(null);
       this.closePairModal();
       this.closeMatchModals();
@@ -156,6 +175,7 @@ export class AdminBracketDetailComponent implements OnDestroy {
     this.modalOpen.set(true);
     this.modalError.set(null);
     this.pairForm.reset({ playerOneId: 0, playerTwoId: 0 });
+    this.selectedPairPlayerOneId.set(0);
 
     if (bracket.gender === 'MIXTO') {
       this.loadAvailablePlayers('MASCULINO', this.playersOne);
@@ -169,6 +189,15 @@ export class AdminBracketDetailComponent implements OnDestroy {
 
   closePairModal(): void {
     this.modalOpen.set(false);
+  }
+
+  onPairPlayerOneChange(): void {
+    const playerOneId = Number(this.pairForm.controls.playerOneId.value);
+    this.selectedPairPlayerOneId.set(playerOneId);
+
+    if (playerOneId === Number(this.pairForm.controls.playerTwoId.value)) {
+      this.pairForm.controls.playerTwoId.setValue(0);
+    }
   }
 
   generateMatches(): void {
@@ -249,6 +278,10 @@ export class AdminBracketDetailComponent implements OnDestroy {
     this.scheduleModalOpen.set(false);
     this.resultModalOpen.set(false);
     this.activeMatch.set(null);
+  }
+
+  cancelTouchSwap(): void {
+    this.touchSwapSelection.set(null);
   }
 
   saveSchedule(): void {
@@ -346,19 +379,7 @@ export class AdminBracketDetailComponent implements OnDestroy {
       return;
     }
 
-    this.matchesService
-      .swapPairs({
-        sourceMatchId: payload.matchId,
-        sourceSide: payload.side,
-        targetMatchId: targetMatch.id,
-        targetSide,
-      })
-      .subscribe({
-        next: () => this.loadBracket(),
-        error: () => {
-          this.generateError.set('No se pudo intercambiar la pareja.');
-        },
-      });
+    this.swapMatchPairs(payload, { matchId: targetMatch.id, side: targetSide });
   }
 
   deletePair(registeredPair: RegisteredPairResponse): void {
@@ -391,8 +412,39 @@ export class AdminBracketDetailComponent implements OnDestroy {
     });
   }
 
-  selectPair(pair?: PairDto | null): void {
+  selectPair(match: MatchResponse, side: MatchSide): void {
+    const pair = side === 'A' ? match.pairA : match.pairB;
+
+    if (!this.isTouchSwapMode()) {
+      if (!pair?.id) {
+        return;
+      }
+
+      this.selectedPairId.set(this.selectedPairId() === pair.id ? null : pair.id);
+      return;
+    }
+
+    const currentSelection = this.touchSwapSelection();
+    const target: TouchSwapSelection = { matchId: match.id, side, pairId: pair?.id ?? null };
+
+    if (currentSelection) {
+      if (currentSelection.matchId === target.matchId && currentSelection.side === target.side) {
+        this.touchSwapSelection.set(null);
+        return;
+      }
+
+      if (!confirm('¿Intercambiar estas dos posiciones del cuadro?')) {
+        return;
+      }
+
+      this.swapMatchPairs(currentSelection, target);
+      return;
+    }
+
+    this.touchSwapSelection.set(target);
+
     if (!pair?.id) {
+      this.selectedPairId.set(null);
       return;
     }
 
@@ -423,6 +475,11 @@ export class AdminBracketDetailComponent implements OnDestroy {
 
   isPairHighlighted(pair?: PairDto | null): boolean {
     return Boolean(pair?.id && this.selectedPairId() === pair.id);
+  }
+
+  isTouchSwapOrigin(match: MatchResponse, side: MatchSide): boolean {
+    const selection = this.touchSwapSelection();
+    return Boolean(selection && selection.matchId === match.id && selection.side === side);
   }
 
   previousPairsPage(): void {
@@ -529,6 +586,36 @@ export class AdminBracketDetailComponent implements OnDestroy {
     }
 
     return null;
+  }
+
+  private swapMatchPairs(source: DragPairPayload, target: DragPairPayload): void {
+    if (source.matchId === target.matchId && source.side === target.side) {
+      return;
+    }
+
+    this.generateError.set(null);
+
+    this.matchesService
+      .swapPairs({
+        sourceMatchId: source.matchId,
+        sourceSide: source.side,
+        targetMatchId: target.matchId,
+        targetSide: target.side,
+      })
+      .subscribe({
+        next: () => {
+          this.touchSwapSelection.set(null);
+          this.loadBracket();
+        },
+        error: () => {
+          this.touchSwapSelection.set(null);
+          this.generateError.set('No se pudo intercambiar la pareja.');
+        },
+      });
+  }
+
+  private isTouchSwapMode(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches;
   }
 
   private updateDragAutoScroll(event: DragEvent): void {

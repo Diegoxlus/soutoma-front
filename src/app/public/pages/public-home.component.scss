@@ -76,20 +76,6 @@ h1 {
   opacity: 0.78;
 }
 
-.admin-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  margin-top: auto;
-  padding: 0 16px;
-  border: 1px solid rgb(255 255 255 / 42%);
-  border-radius: 6px;
-  color: #fff;
-  font-weight: 800;
-  text-decoration: none;
-}
-
 .public-main {
   display: grid;
   align-content: start;
@@ -118,15 +104,16 @@ h1 {
 }
 
 .filters {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  justify-content: flex-end;
+  width: min(520px, 100%);
 }
 
 .filters label {
   display: grid;
   gap: 6px;
+  min-width: 0;
   color: #66758c;
   font-size: 0.78rem;
   font-weight: 800;
@@ -135,7 +122,8 @@ h1 {
 
 .filters select,
 .filters input {
-  min-width: 210px;
+  width: 100%;
+  min-width: 0;
   min-height: 42px;
   padding: 0 12px;
   border: 1px solid #cfd9e8;
@@ -456,10 +444,6 @@ h1 {
     min-height: auto;
   }
 
-  .admin-link {
-    margin-top: 0;
-  }
-
   .page-header,
   .page-header--filters {
     align-items: stretch;
@@ -467,12 +451,7 @@ h1 {
   }
 
   .filters {
-    justify-content: stretch;
-  }
-
-  .filters label,
-  .filters select,
-  .filters input {
+    grid-template-columns: 1fr;
     width: 100%;
   }
 }

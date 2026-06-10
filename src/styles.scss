@@ -21,3 +21,120 @@ body {
 * {
   box-sizing: border-box;
 }
+
+.admin-menu-toggle,
+.admin-menu-button,
+.admin-menu-backdrop {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .admin-shell {
+    display: block !important;
+    min-height: 100vh;
+    padding-top: 62px;
+  }
+
+  .admin-menu-button {
+    position: fixed;
+    top: 14px;
+    left: 16px;
+    z-index: 50;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgb(255 255 255 / 38%);
+    border-radius: 10px;
+    background: #113f67;
+    box-shadow: 0 12px 28px rgb(9 20 35 / 20%);
+    cursor: pointer;
+    transition:
+      left 0.2s ease,
+      background 0.16s ease,
+      border-color 0.16s ease;
+  }
+
+  .admin-menu-button span,
+  .admin-menu-button::before,
+  .admin-menu-button::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    display: block;
+    width: 20px;
+    height: 2px;
+    border-radius: 999px;
+    background: #fff;
+    transition:
+      transform 0.18s ease,
+      opacity 0.18s ease;
+  }
+
+  .admin-menu-button::before {
+    top: 13px;
+  }
+
+  .admin-menu-button span {
+    top: 20px;
+  }
+
+  .admin-menu-button::after {
+    top: 27px;
+  }
+
+  .admin-menu-backdrop {
+    position: fixed;
+    inset: 0 0 0 min(318px, 86vw);
+    z-index: 35;
+    background: rgb(9 20 35 / 42%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+  }
+
+  .admin-shell > .sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    z-index: 40;
+    width: min(318px, 86vw) !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: 18px 0 46px rgb(9 20 35 / 22%);
+  }
+
+  .admin-menu-toggle:checked ~ .sidebar {
+    transform: translateX(0);
+  }
+
+  .admin-menu-toggle:checked ~ .admin-menu-button {
+    left: min(260px, calc(86vw - 58px));
+    border-color: rgb(255 255 255 / 46%);
+    background: rgb(255 255 255 / 14%);
+    box-shadow: none;
+  }
+
+  .admin-menu-toggle:checked ~ .admin-menu-button span {
+    opacity: 0;
+  }
+
+  .admin-menu-toggle:checked ~ .admin-menu-button::before {
+    top: 20px;
+    transform: rotate(45deg);
+  }
+
+  .admin-menu-toggle:checked ~ .admin-menu-button::after {
+    top: 20px;
+    transform: rotate(-45deg);
+  }
+
+  .admin-menu-toggle:checked ~ .admin-menu-backdrop {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+}

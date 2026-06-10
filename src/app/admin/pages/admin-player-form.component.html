@@ -1,4 +1,8 @@
 <main class="admin-shell">
+  <input class="admin-menu-toggle" type="checkbox" id="admin-menu-toggle" aria-label="Abrir menú de administración" />
+  <label class="admin-menu-button" for="admin-menu-toggle" aria-label="Abrir menú"><span></span></label>
+  <label class="admin-menu-backdrop" for="admin-menu-toggle" aria-label="Cerrar menú"></label>
+
   <aside class="sidebar" aria-label="Administración">
     <div class="brand">
       <p>Soutoma Padel</p>
@@ -25,7 +29,7 @@
     <a class="back-link" routerLink="/players">Volver a jugadores</a>
 
     <header>
-      <p>{{ isEdit ? 'Editar jugador' : 'Nuevo jugador' }}</p>
+      <p>Jugador</p>
       <h2>{{ isEdit ? 'Editar jugador' : 'Crear jugador' }}</h2>
     </header>
 

@@ -1,4 +1,8 @@
 <main class="admin-shell">
+  <input class="admin-menu-toggle" type="checkbox" id="admin-menu-toggle" aria-label="Abrir menú de administración" />
+  <label class="admin-menu-button" for="admin-menu-toggle" aria-label="Abrir menú"><span></span></label>
+  <label class="admin-menu-backdrop" for="admin-menu-toggle" aria-label="Cerrar menú"></label>
+
   <aside class="sidebar" aria-label="Administración">
     <div class="brand">
       <p>Soutoma Padel</p>
@@ -92,6 +96,13 @@
             }
           </div>
 
+          <div class="touch-swap-hint" [class.is-active]="touchSwapSelection()">
+            <span>{{ touchSwapText() }}</span>
+            @if (touchSwapSelection()) {
+              <button class="secondary-button" type="button" (click)="cancelTouchSwap()">Cancelar</button>
+            }
+          </div>
+
           <div class="bracket-board" aria-label="Enfrentamientos">
             @for (round of rounds(); track round.key) {
               <section class="round-column">
@@ -133,7 +144,8 @@
                         draggable="true"
                         [class.is-winner]="isWinner(match, match.pairA)"
                         [class.is-highlighted]="isPairHighlighted(match.pairA)"
-                        (click)="selectPair(match.pairA)"
+                        [class.is-swap-origin]="isTouchSwapOrigin(match, 'A')"
+                        (click)="selectPair(match, 'A')"
                         (dragstart)="onPairDragStart($event, match, 'A')"
                         (dragend)="onPairDragEnd()"
                         (dragover)="allowDrop($event)"
@@ -172,7 +184,8 @@
                         draggable="true"
                         [class.is-winner]="isWinner(match, match.pairB)"
                         [class.is-highlighted]="isPairHighlighted(match.pairB)"
-                        (click)="selectPair(match.pairB)"
+                        [class.is-swap-origin]="isTouchSwapOrigin(match, 'B')"
+                        (click)="selectPair(match, 'B')"
                         (dragstart)="onPairDragStart($event, match, 'B')"
                         (dragend)="onPairDragEnd()"
                         (dragover)="allowDrop($event)"
@@ -296,7 +309,7 @@
         <form [formGroup]="pairForm" (ngSubmit)="savePair()">
           <label>
             Jugador 1
-            <select formControlName="playerOneId">
+            <select formControlName="playerOneId" (change)="onPairPlayerOneChange()">
               <option [value]="0">Seleccionar</option>
               @for (player of playersOne(); track player.id) {
                 <option [value]="player.id">{{ player.displayName || player.name + ' ' + player.surnames }}</option>
@@ -308,7 +321,7 @@
             Jugador 2
             <select formControlName="playerTwoId">
               <option [value]="0">Seleccionar</option>
-              @for (player of playersTwo(); track player.id) {
+              @for (player of availablePlayersTwo(); track player.id) {
                 <option [value]="player.id">{{ player.displayName || player.name + ' ' + player.surnames }}</option>
               }
             </select>
