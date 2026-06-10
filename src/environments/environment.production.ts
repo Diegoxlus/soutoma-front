@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://YOUR_API_URL/api',
+  apiBaseUrl: 'https://soutoma-back.onrender.com/api',
 } as const;
