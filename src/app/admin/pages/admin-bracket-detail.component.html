@@ -105,7 +105,12 @@
 
           <div class="bracket-board" aria-label="Enfrentamientos">
             @for (round of rounds(); track round.key) {
-              <section class="round-column">
+              <section
+                class="round-column"
+                [style.--match-gap]="round.matchGap + 'px'"
+                [style.--connector-height]="round.connectorHeight + 'px'"
+                [style.--round-offset]="round.offset + 'px'"
+              >
                 <header>
                   <h4>{{ round.label }}</h4>
                   <span>{{ round.matches.length }} partidos</span>
@@ -114,6 +119,18 @@
                 <div class="match-stack">
                   @for (match of round.matches; track match.id) {
                     <article class="match-card">
+                      @if (!round.isFirst) {
+                        <span class="connector connector-in" aria-hidden="true"></span>
+                      }
+                      @if (!round.isLast) {
+                        <span
+                          class="connector connector-out"
+                          [class.connector-out--upper]="match.connectorRole === 'upper'"
+                          [class.connector-out--lower]="match.connectorRole === 'lower'"
+                          aria-hidden="true"
+                        ></span>
+                      }
+
                       <div class="match-toolbar">
                         <span>Partido {{ match.positionNumber }}</span>
                         <div>
