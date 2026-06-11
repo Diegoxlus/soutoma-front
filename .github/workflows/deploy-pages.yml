@@ -33,12 +33,13 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build -- --configuration production --base-href "/${{ github.event.repository.name }}/"
+        run: npm run build -- --configuration production --base-href "/"
 
       - name: Add SPA fallback
         run: |
           cp dist/soutoma-front/browser/index.html dist/soutoma-front/browser/404.html
           touch dist/soutoma-front/browser/.nojekyll
+          echo "atp-soutomaior.es" > dist/soutoma-front/browser/CNAME
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
