@@ -138,3 +138,42 @@ body {
     pointer-events: auto;
   }
 }
+
+.admin-shell .connector {
+  position: absolute;
+  pointer-events: none;
+}
+
+.admin-shell .connector-in {
+  top: 50%;
+  left: calc(-1 * var(--connector-width));
+  width: var(--connector-width);
+  border-top: 2px solid #c8d4e3;
+}
+
+.admin-shell .connector-out {
+  right: calc(-1 * var(--connector-width));
+  width: var(--connector-width);
+  border-right: 2px solid #c8d4e3;
+}
+
+.admin-shell .connector-out--upper {
+  top: 50%;
+  height: calc(var(--connector-height) + 2px);
+  border-top: 2px solid #c8d4e3;
+  border-radius: 0 8px 0 0;
+}
+
+.admin-shell .connector-out--lower {
+  bottom: 50%;
+  height: calc(var(--connector-height) + 2px);
+  border-bottom: 2px solid #c8d4e3;
+  border-radius: 0 0 8px 0;
+}
+
+@media (max-width: 720px) {
+  .admin-shell .bracket-board {
+    --connector-width: 34px;
+    --round-gap: 68px;
+  }
+}

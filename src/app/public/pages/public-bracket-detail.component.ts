@@ -25,6 +25,9 @@ const ROUND_LABELS: Record<BracketRound, string> = {
   FINAL: 'Final',
 };
 
+const MATCH_CARD_HEIGHT = 230;
+const MATCH_GAP = 18;
+
 @Component({
   selector: 'app-public-bracket-detail',
   imports: [DatePipe, RouterLink],
@@ -43,11 +46,30 @@ export class PublicBracketDetailComponent {
   protected readonly rounds = computed(() => {
     const rounds = this.bracket()?.rounds ?? {};
 
-    return ROUND_ORDER.map((round) => ({
+    const visibleRounds = ROUND_ORDER.map((round) => ({
       key: round,
       label: ROUND_LABELS[round],
       matches: [...(rounds[round] ?? [])].sort((a, b) => a.positionNumber - b.positionNumber),
     })).filter((round) => round.matches.length > 0);
+
+    return visibleRounds.map((round, roundIndex) => {
+      const matchDistance = MATCH_CARD_HEIGHT + MATCH_GAP;
+      const multiplier = Math.max(0, Math.pow(2, roundIndex) - 1);
+
+      return {
+        ...round,
+        index: roundIndex,
+        isFirst: roundIndex === 0,
+        isLast: roundIndex === visibleRounds.length - 1,
+        matchGap: MATCH_GAP + matchDistance * multiplier,
+        connectorHeight: (MATCH_CARD_HEIGHT + MATCH_GAP + matchDistance * multiplier) / 2,
+        offset: (matchDistance * multiplier) / 2,
+        matches: round.matches.map((match, matchIndex) => ({
+          ...match,
+          connectorRole: matchIndex % 2 === 0 ? 'upper' : 'lower',
+        })),
+      };
+    });
   });
 
   constructor() {

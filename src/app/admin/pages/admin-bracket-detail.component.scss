@@ -286,10 +286,14 @@ button:disabled {
 }
 
 .bracket-board {
+  --connector-width: 42px;
+  --match-card-height: 230px;
+  --round-gap: 84px;
   display: grid;
   grid-auto-columns: minmax(280px, 340px);
   grid-auto-flow: column;
-  gap: 18px;
+  gap: var(--round-gap);
+  align-items: start;
   overflow-x: auto;
   padding-bottom: 10px;
 }
@@ -321,12 +325,15 @@ button:disabled {
 
 .match-stack {
   display: grid;
-  gap: 14px;
+  gap: var(--match-gap, 18px);
+  padding-top: var(--round-offset, 0);
 }
 
 .match-card {
+  position: relative;
   display: grid;
   gap: 8px;
+  height: var(--match-card-height);
   padding: 12px;
   border: 1px solid #d9e2ef;
   border-radius: 8px;

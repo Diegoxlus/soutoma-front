@@ -32,7 +32,13 @@
   } @else {
     <section class="bracket-board" aria-label="Enfrentamientos">
       @for (round of rounds(); track round.key) {
-        <section class="round-column">
+        <section
+          class="round-column"
+          [class.has-next-round]="!round.isLast"
+          [style.--match-gap]="round.matchGap + 'px'"
+          [style.--connector-height]="round.connectorHeight + 'px'"
+          [style.--round-offset]="round.offset + 'px'"
+        >
           <header>
             <h2>{{ round.label }}</h2>
             <span>{{ round.matches.length }} partidos</span>
@@ -41,6 +47,18 @@
           <div class="match-stack">
             @for (match of round.matches; track match.id) {
               <article class="match-card">
+                @if (!round.isFirst) {
+                  <span class="connector connector-in" aria-hidden="true"></span>
+                }
+                @if (!round.isLast) {
+                  <span
+                    class="connector connector-out"
+                    [class.connector-out--upper]="match.connectorRole === 'upper'"
+                    [class.connector-out--lower]="match.connectorRole === 'lower'"
+                    aria-hidden="true"
+                  ></span>
+                }
+
                 <div class="match-meta">
                   <span>Partido {{ match.positionNumber }}</span>
                   <span>{{ match.status || 'PENDIENTE' }}</span>
