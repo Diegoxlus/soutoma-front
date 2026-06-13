@@ -5,6 +5,7 @@ export interface PlayerRequest {
   surnames: string;
   dni?: string | null;
   phone?: string | null;
+  email?: string | null;
   gender?: PlayerGender | null;
   imageBase64?: string | null;
 }

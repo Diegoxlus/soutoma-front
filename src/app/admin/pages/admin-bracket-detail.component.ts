@@ -51,6 +51,22 @@ interface TouchSwapSelection extends DragPairPayload {
   pairId: number | null;
 }
 
+interface PlayerContactView {
+  key: string;
+  pending: boolean;
+  displayName: string;
+  name: string;
+  surnames: string;
+  phone: string | null;
+  email: string | null;
+  imageBase64: string | null;
+}
+
+interface MatchPlayersPairView {
+  label: string;
+  players: PlayerContactView[];
+}
+
 @Component({
   selector: 'app-admin-bracket-detail',
   imports: [DatePipe, ReactiveFormsModule, RouterLink, RouterLinkActive],
@@ -76,9 +92,13 @@ export class AdminBracketDetailComponent implements OnDestroy {
   protected readonly modalOpen = signal(false);
   protected readonly scheduleModalOpen = signal(false);
   protected readonly resultModalOpen = signal(false);
+  protected readonly playersModalOpen = signal(false);
   protected readonly activeMatch = signal<MatchResponse | null>(null);
+  protected readonly activePlayersMatch = signal<MatchResponse | null>(null);
   protected readonly selectedPairId = signal<number | null>(null);
   protected readonly touchSwapSelection = signal<TouchSwapSelection | null>(null);
+  protected readonly bracketPlayers = signal<PlayerResponse[]>([]);
+  protected readonly playersModalState = signal<LoadState>('ready');
   protected readonly playersOne = signal<PlayerResponse[]>([]);
   protected readonly playersTwo = signal<PlayerResponse[]>([]);
   protected readonly selectedPairPlayerOneId = signal(0);
@@ -108,6 +128,7 @@ export class AdminBracketDetailComponent implements OnDestroy {
     { label: 'Inicio', description: 'Resumen general', route: '/admin' },
     { label: 'Cuadros', description: 'Gestionar torneos', route: '/admin/brackets' },
     { label: 'Jugadores', description: 'Gestionar jugadores', route: '/players' },
+    { label: 'Partidos', description: 'Enfrentamientos del dia', route: '/admin/matches' },
     { label: 'Patrocinadores', description: 'Gestionar sponsors', route: '/admin/sponsors' },
   ] as const;
 
@@ -160,6 +181,27 @@ export class AdminBracketDetailComponent implements OnDestroy {
     return [match?.pairA, match?.pairB].filter((pair): pair is PairDto => Boolean(pair?.id));
   });
 
+  protected readonly matchPlayerPairs = computed<MatchPlayersPairView[]>(() => {
+    const match = this.activePlayersMatch();
+
+    return [
+      {
+        label: 'Pareja A',
+        players: [
+          this.toPlayerContact(match?.pairA?.playerOne, 'A1'),
+          this.toPlayerContact(match?.pairA?.playerTwo, 'A2'),
+        ],
+      },
+      {
+        label: 'Pareja B',
+        players: [
+          this.toPlayerContact(match?.pairB?.playerOne, 'B1'),
+          this.toPlayerContact(match?.pairB?.playerTwo, 'B2'),
+        ],
+      },
+    ];
+  });
+
   protected readonly availablePlayersTwo = computed(() => {
     const selectedPlayerOneId = this.selectedPairPlayerOneId();
     return this.playersTwo().filter((player) => player.id !== selectedPlayerOneId);
@@ -179,6 +221,8 @@ export class AdminBracketDetailComponent implements OnDestroy {
       this.generateError.set(null);
       this.closePairModal();
       this.closeMatchModals();
+      this.closePlayersModal();
+      this.bracketPlayers.set([]);
       this.loadBracket();
       this.loadPairs(0);
     });
@@ -300,6 +344,20 @@ export class AdminBracketDetailComponent implements OnDestroy {
     this.scheduleModalOpen.set(false);
     this.resultModalOpen.set(false);
     this.activeMatch.set(null);
+  }
+
+  openPlayersModal(match: MatchResponse): void {
+    this.activePlayersMatch.set(match);
+    this.playersModalOpen.set(true);
+    this.playersModalState.set('loading');
+
+    this.loadBracketPlayers();
+  }
+
+  closePlayersModal(): void {
+    this.playersModalOpen.set(false);
+    this.activePlayersMatch.set(null);
+    this.playersModalState.set('ready');
   }
 
   cancelTouchSwap(): void {
@@ -499,6 +557,21 @@ export class AdminBracketDetailComponent implements OnDestroy {
     return Boolean(pair?.id && this.selectedPairId() === pair.id);
   }
 
+  whatsappUrl(phone: string | null): string | null {
+    const phoneNumber = this.whatsappPhone(phone);
+    return phoneNumber ? `https://wa.me/${phoneNumber}` : null;
+  }
+
+  callUrl(phone: string | null): string | null {
+    const phoneNumber = this.whatsappPhone(phone);
+    return phoneNumber ? `tel:+${phoneNumber}` : null;
+  }
+
+  emailUrl(email: string | null): string | null {
+    const cleanEmail = email?.trim();
+    return cleanEmail ? `mailto:${cleanEmail}` : null;
+  }
+
   isTouchSwapOrigin(match: MatchResponse, side: MatchSide): boolean {
     const selection = this.touchSwapSelection();
     return Boolean(selection && selection.matchId === match.id && selection.side === side);
@@ -582,6 +655,67 @@ export class AdminBracketDetailComponent implements OnDestroy {
           this.modalError.set('No se pudieron cargar jugadores disponibles.');
         },
       });
+  }
+
+  private loadBracketPlayers(): void {
+    this.playersService
+      .listPlayers({
+        bracketId: this.bracketId(),
+        availableOnly: false,
+        page: 0,
+        size: 500,
+      })
+      .subscribe({
+        next: (page) => {
+          this.bracketPlayers.set(page.content);
+          this.playersModalState.set('ready');
+        },
+        error: () => {
+          this.playersModalState.set('error');
+        },
+      });
+  }
+
+  private toPlayerContact(player: PairPlayerDto | null | undefined, slot: string): PlayerContactView {
+    if (!player) {
+      return {
+        key: slot,
+        pending: true,
+        displayName: 'Jugador pendiente',
+        name: 'Jugador pendiente',
+        surnames: '',
+        phone: null,
+        email: null,
+        imageBase64: null,
+      };
+    }
+
+    const details = this.bracketPlayers().find((bracketPlayer) => bracketPlayer.id === player.id);
+    const displayName = details?.displayName || player.displayName || `${details?.name ?? ''} ${details?.surnames ?? ''}`.trim();
+
+    return {
+      key: `${slot}-${player.id}`,
+      pending: false,
+      displayName: displayName || 'Jugador pendiente',
+      name: details?.name || player.name || displayName || 'Jugador',
+      surnames: details?.surnames || player.surnames || '',
+      phone: details?.phone || player.phone || null,
+      email: details?.email || player.email || null,
+      imageBase64: details?.imageBase64 || player.imageBase64 || null,
+    };
+  }
+
+  private whatsappPhone(phone: string | null): string | null {
+    const digits = phone?.replace(/\D/g, '') ?? '';
+    if (!digits) {
+      return null;
+    }
+
+    if (digits.startsWith('34') || digits.length > 9) {
+      return digits;
+    }
+
+    return `34${digits}`;
   }
 
   private toDateTimeLocalValue(value?: string | null): string {
