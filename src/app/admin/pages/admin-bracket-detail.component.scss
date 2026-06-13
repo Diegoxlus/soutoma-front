@@ -537,6 +537,11 @@ button:disabled {
   box-sizing: border-box;
 }
 
+.modal.players-modal {
+  width: min(1120px, calc(100vw - 48px));
+  overflow-x: hidden;
+}
+
 .modal header {
   display: flex;
   align-items: center;

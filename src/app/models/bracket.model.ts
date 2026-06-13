@@ -11,6 +11,10 @@ export type BracketGender = 'MASCULINO' | 'FEMENINO' | 'MIXTO';
 export interface PairPlayerDto {
   id: number;
   displayName: string;
+  name?: string | null;
+  surnames?: string | null;
+  phone?: string | null;
+  email?: string | null;
   imageBase64?: string | null;
 }
 

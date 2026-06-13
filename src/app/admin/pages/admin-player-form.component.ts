@@ -31,6 +31,7 @@ export class AdminPlayerFormComponent {
     { label: 'Inicio', description: 'Resumen general', route: '/admin' },
     { label: 'Cuadros', description: 'Gestionar torneos', route: '/admin/brackets' },
     { label: 'Jugadores', description: 'Gestionar jugadores', route: '/players' },
+    { label: 'Partidos', description: 'Enfrentamientos del dia', route: '/admin/matches' },
     { label: 'Patrocinadores', description: 'Gestionar sponsors', route: '/admin/sponsors' },
   ] as const;
 
@@ -39,6 +40,7 @@ export class AdminPlayerFormComponent {
     surnames: ['', Validators.required],
     dni: [''],
     phone: [''],
+    email: [''],
     gender: ['' as PlayerGender | ''],
     imageBase64: [''],
   });
@@ -52,6 +54,7 @@ export class AdminPlayerFormComponent {
         surnames: player.surnames,
         dni: player.dni ?? '',
         phone: player.phone ?? '',
+        email: player.email ?? '',
         gender: player.gender ?? '',
         imageBase64: player.imageBase64 ?? '',
       });
@@ -107,6 +110,7 @@ export class AdminPlayerFormComponent {
       surnames: formValue.surnames,
       dni: formValue.dni || null,
       phone: formValue.phone || null,
+      email: formValue.email || null,
       gender: formValue.gender || null,
       imageBase64: formValue.imageBase64 || null,
     };

@@ -72,6 +72,12 @@ export const routes: Routes = [
       import('./admin/pages/admin-dashboard.component').then((m) => m.AdminDashboardComponent),
   },
   {
+    path: 'admin/matches',
+    canMatch: [authGuard],
+    loadComponent: () =>
+      import('./admin/pages/admin-day-matches.component').then((m) => m.AdminDayMatchesComponent),
+  },
+  {
     path: 'admin/sponsors',
     canMatch: [authGuard],
     loadComponent: () =>

@@ -1,0 +1,393 @@
+<main class="admin-shell">
+  <input class="admin-menu-toggle" type="checkbox" id="admin-menu-toggle" aria-label="Abrir menú de administración" />
+  <label class="admin-menu-button" for="admin-menu-toggle" aria-label="Abrir menú"><span></span></label>
+  <label class="admin-menu-backdrop" for="admin-menu-toggle" aria-label="Cerrar menú"></label>
+
+  <aside class="sidebar" aria-label="Administración">
+    <div class="brand">
+      <p>Soutoma Padel</p>
+      <h1>Admin</h1>
+    </div>
+
+    <nav class="admin-nav" aria-label="Secciones">
+      @for (item of navItems; track item.route) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/admin' || item.route === '/admin/matches' }"
+        >
+          <span>{{ item.label }}</span>
+          <small>{{ item.description }}</small>
+        </a>
+      }
+    </nav>
+
+    <button class="logout-button" type="button" (click)="logout()">Cerrar sesión</button>
+  </aside>
+
+  <section class="matches-main">
+    <header class="page-header page-header--filters">
+      <div>
+        <p>Partidos</p>
+        <h2>Enfrentamientos</h2>
+      </div>
+
+      <form class="filters" aria-label="Filtros de partidos">
+        <label>
+          <span>Cuadro</span>
+          <select [ngModel]="selectedBracketId() ?? ''" name="bracketId" (ngModelChange)="onBracketFilter($event)">
+            <option value="">Todos los cuadros</option>
+            @for (bracket of brackets(); track bracket.id) {
+              <option [value]="bracket.id">{{ bracket.name }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Fecha</span>
+          <input type="date" [ngModel]="selectedDate()" name="date" (ngModelChange)="onDateFilter($event)" />
+        </label>
+      </form>
+    </header>
+
+    @if (matchesState() === 'loading' || bracketsState() === 'loading') {
+      <div class="status-panel">
+        <span class="loader" aria-hidden="true"></span>
+        <p>Cargando partidos...</p>
+      </div>
+    } @else if (matchesState() === 'error' || bracketsState() === 'error') {
+      <div class="status-panel status-panel--error">
+        <h3>No se pudieron cargar los partidos</h3>
+        <p>Comprueba que la API responde correctamente.</p>
+      </div>
+    } @else if (matches().length === 0) {
+      <div class="status-panel">
+        <h3>No hay partidos para esta selección</h3>
+        <p>Ajusta el cuadro o la fecha para consultar otros enfrentamientos.</p>
+      </div>
+    } @else {
+      <section class="matches-header" aria-label="Resumen de partidos">
+        <span>{{ totalMatches() }} partidos</span>
+        <span>Página {{ matchPage() + 1 }} de {{ totalMatchPages() }}</span>
+      </section>
+
+      <section class="match-list" aria-label="Listado de enfrentamientos">
+        @for (match of matches(); track match.id) {
+          <article class="match-card">
+            <header class="match-topline">
+              <div>
+                <strong>{{ bracketName(match.bracketId) }}</strong>
+                <span>{{ match.round }} · Partido {{ match.positionNumber }}</span>
+              </div>
+              <div class="match-admin-tools">
+                <button
+                  class="icon-button"
+                  type="button"
+                  title="Añadir fecha/hora"
+                  aria-label="Añadir fecha/hora"
+                  (click)="openScheduleModal(match)"
+                >
+                  ◷
+                </button>
+                <button
+                  class="icon-button"
+                  type="button"
+                  title="Añadir resultado"
+                  aria-label="Añadir resultado"
+                  (click)="openResultModal(match)"
+                >
+                  ▦
+                </button>
+                <button
+                  class="icon-button"
+                  type="button"
+                  title="Ver jugadores"
+                  aria-label="Ver jugadores del enfrentamiento"
+                  (click)="openPlayersModal(match)"
+                >
+                  <span class="players-toolbar-icon" aria-hidden="true"></span>
+                </button>
+              </div>
+              <div class="match-time">
+                @if (match.scheduledAt) {
+                  {{ match.scheduledAt | date: 'dd/MM/yyyy HH:mm' }}
+                } @else {
+                  Sin hora
+                }
+              </div>
+            </header>
+
+            <div class="match-pairs">
+              <div class="pair-row" [class.is-winner]="isWinner(match, match.pairA)">
+                <div class="pair-players">
+                  <span class="match-player">
+                    <span class="match-avatar">
+                      @if (match.pairA?.playerOne?.imageBase64) {
+                        <img [src]="match.pairA?.playerOne?.imageBase64" alt="" />
+                      } @else {
+                        <span>{{ playerInitials(match.pairA?.playerOne) }}</span>
+                      }
+                    </span>
+                    <strong>{{ match.pairA?.playerOne?.displayName || 'Pendiente' }}</strong>
+                  </span>
+                  <span class="match-player">
+                    <span class="match-avatar">
+                      @if (match.pairA?.playerTwo?.imageBase64) {
+                        <img [src]="match.pairA?.playerTwo?.imageBase64" alt="" />
+                      } @else {
+                        <span>{{ playerInitials(match.pairA?.playerTwo) }}</span>
+                      }
+                    </span>
+                    <strong>{{ match.pairA?.playerTwo?.displayName || 'Pendiente' }}</strong>
+                  </span>
+                </div>
+                @if (match.byeA) {
+                  <span class="bye-pill">BYE</span>
+                }
+              </div>
+
+              <div class="versus">VS</div>
+
+              <div class="pair-row" [class.is-winner]="isWinner(match, match.pairB)">
+                <div class="pair-players">
+                  <span class="match-player">
+                    <span class="match-avatar">
+                      @if (match.pairB?.playerOne?.imageBase64) {
+                        <img [src]="match.pairB?.playerOne?.imageBase64" alt="" />
+                      } @else {
+                        <span>{{ playerInitials(match.pairB?.playerOne) }}</span>
+                      }
+                    </span>
+                    <strong>{{ match.pairB?.playerOne?.displayName || 'Pendiente' }}</strong>
+                  </span>
+                  <span class="match-player">
+                    <span class="match-avatar">
+                      @if (match.pairB?.playerTwo?.imageBase64) {
+                        <img [src]="match.pairB?.playerTwo?.imageBase64" alt="" />
+                      } @else {
+                        <span>{{ playerInitials(match.pairB?.playerTwo) }}</span>
+                      }
+                    </span>
+                    <strong>{{ match.pairB?.playerTwo?.displayName || 'Pendiente' }}</strong>
+                  </span>
+                </div>
+                @if (match.byeB) {
+                  <span class="bye-pill">BYE</span>
+                }
+              </div>
+            </div>
+
+            <footer>
+              <span class="status-pill">{{ match.status || 'PENDIENTE' }}</span>
+              @if (match.resultText) {
+                <strong>{{ match.resultText }}</strong>
+              }
+            </footer>
+          </article>
+        }
+      </section>
+
+      <nav class="pagination" aria-label="Paginación de partidos">
+        <button type="button" [disabled]="matchPage() === 0" (click)="goToMatchPage(matchPage() - 1)">Anterior</button>
+        <button
+          type="button"
+          [disabled]="matchPage() + 1 >= totalMatchPages()"
+          (click)="goToMatchPage(matchPage() + 1)"
+        >
+          Siguiente
+        </button>
+      </nav>
+    }
+  </section>
+
+  @if (scheduleModalOpen()) {
+    <div class="modal-backdrop" role="presentation">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="schedule-modal-title">
+        <header>
+          <h3 id="schedule-modal-title">Fecha y hora</h3>
+        </header>
+
+        <form [formGroup]="scheduleForm" (ngSubmit)="saveSchedule()">
+          <label>
+            Fecha/hora
+            <input type="datetime-local" formControlName="scheduledAt" />
+          </label>
+          <label>
+            Estado
+            <select formControlName="status">
+              <option value="PENDIENTE">Pendiente</option>
+              <option value="PROGRAMADO">Programado</option>
+              <option value="FINALIZADO">Finalizado</option>
+            </select>
+          </label>
+
+          @if (modalError()) {
+            <p class="form-error">{{ modalError() }}</p>
+          }
+
+          <div class="form-actions">
+            <button class="secondary-button" type="button" (click)="closeMatchModals()">Cancelar</button>
+            <button type="submit" [disabled]="savingMatch()">Guardar</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+
+  @if (resultModalOpen()) {
+    <div class="modal-backdrop" role="presentation">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="result-modal-title">
+        <header>
+          <h3 id="result-modal-title">Resultado</h3>
+        </header>
+
+        <form [formGroup]="resultForm" (ngSubmit)="saveResult()">
+          <label>
+            Ganador
+            <select formControlName="winnerPairId">
+              <option [value]="0">Seleccionar</option>
+              @for (pair of resultWinnerOptions(); track pair.id) {
+                <option [value]="pair.id">{{ pairName(pair) }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            Marcador
+            <input type="text" formControlName="resultText" placeholder="Ej. 6-4 7-5" />
+          </label>
+
+          @if (modalError()) {
+            <p class="form-error">{{ modalError() }}</p>
+          }
+
+          <div class="form-actions">
+            <button class="secondary-button" type="button" (click)="closeMatchModals()">Cancelar</button>
+            <button type="submit" [disabled]="savingMatch()">Guardar</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+
+  @if (playersModalOpen()) {
+    <div class="modal-backdrop" role="presentation" (click)="closePlayersModal()">
+      <section
+        class="modal players-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="players-modal-title"
+        (click)="$event.stopPropagation()"
+      >
+        <header>
+          <h3 id="players-modal-title">Jugadores del enfrentamiento</h3>
+        </header>
+
+        @if (playersModalState() === 'loading') {
+          <div class="players-loading">Cargando datos de contacto...</div>
+        } @else {
+          @if (playersModalState() === 'error') {
+            <p class="form-error">
+              No se pudieron completar los datos de contacto. Se muestran los datos disponibles del enfrentamiento.
+            </p>
+          }
+
+          <div class="match-players-dialog">
+            @for (pair of matchPlayerPairs(); track pair.label) {
+              <section class="contact-pair">
+                <h4>{{ pair.label }}</h4>
+                <div class="contact-player-list">
+                  @for (player of pair.players; track player.key) {
+                    <article class="player-contact-card" [class.is-pending]="player.pending">
+                      <div class="player-contact-main">
+                        <span class="contact-avatar">
+                          @if (player.imageBase64) {
+                            <img [src]="player.imageBase64" alt="" />
+                          } @else {
+                            <span>{{ playerInitials({ id: 0, displayName: player.displayName }) }}</span>
+                          }
+                        </span>
+                        <div>
+                          <strong>{{ player.name }}</strong>
+                          @if (player.surnames) {
+                            <span>{{ player.surnames }}</span>
+                          }
+                        </div>
+                      </div>
+
+                      <dl>
+                        <div>
+                          <dt>Email</dt>
+                          <dd>{{ player.email || '-' }}</dd>
+                        </div>
+                        <div>
+                          <dt>Telefono</dt>
+                          <dd>{{ player.phone || '-' }}</dd>
+                        </div>
+                      </dl>
+
+                      <div class="contact-actions">
+                        @if (whatsappUrl(player.phone); as whatsapp) {
+                          <a
+                            class="contact-action-icon contact-action-icon--whatsapp"
+                            [href]="whatsapp"
+                            target="_blank"
+                            rel="noopener"
+                            title="Abrir WhatsApp"
+                            aria-label="Abrir WhatsApp"
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                d="M12 3.3A8.6 8.6 0 0 0 4.7 16.5L4 21l4.6-1.2A8.6 8.6 0 1 0 12 3.3Zm0 1.7a6.9 6.9 0 0 1 0 13.8c-1.1 0-2.1-.2-3-.7l-.3-.1-2.4.6.6-2.3-.2-.3A6.9 6.9 0 0 1 12 5Zm-3 3.8c-.2 0-.5.1-.7.3-.3.3-.9.9-.9 2.1s.9 2.4 1 2.5c.1.2 1.8 2.9 4.5 3.9 2.2.9 2.7.7 3.2.7.5-.1 1.6-.7 1.8-1.3.2-.7.2-1.2.1-1.3l-.6-.3-1.8-.9c-.2-.1-.5-.1-.7.2l-.8 1c-.1.2-.3.2-.6.1-.3-.1-1.1-.4-2-1.2-.7-.7-1.2-1.5-1.4-1.8-.1-.2 0-.4.1-.5l.4-.5.3-.5c.1-.2.1-.4 0-.6l-.8-1.9c-.2-.5-.4-.5-.7-.5H9Z"
+                              />
+                            </svg>
+                          </a>
+                        }
+                        @if (callUrl(player.phone); as phone) {
+                          <a
+                            class="contact-action-icon contact-action-icon--phone"
+                            [href]="phone"
+                            title="Llamar"
+                            aria-label="Llamar"
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                d="M6.6 10.8c1.5 3 3.8 5.3 6.7 6.7l2.2-2.2c.3-.3.8-.4 1.2-.2 1.3.4 2.6.7 4 .7.7 0 1.3.6 1.3 1.3v3.5c0 .7-.6 1.3-1.3 1.3C10.4 22 2 13.6 2 3.3 2 2.6 2.6 2 3.3 2h3.5c.7 0 1.3.6 1.3 1.3 0 1.4.2 2.8.7 4 .1.4 0 .8-.3 1.1l-2 2.4Z"
+                              />
+                            </svg>
+                          </a>
+                        }
+                        @if (emailUrl(player.email); as email) {
+                          <a
+                            class="contact-action-icon contact-action-icon--gmail"
+                            [href]="email"
+                            title="Enviar email"
+                            aria-label="Enviar email"
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                d="M4.5 6h15A1.5 1.5 0 0 1 21 7.5v9A1.5 1.5 0 0 1 19.5 18h-15A1.5 1.5 0 0 1 3 16.5v-9A1.5 1.5 0 0 1 4.5 6Zm0 2.1v8.4h15V8.1l-7.1 5.1a.7.7 0 0 1-.8 0L4.5 8.1Zm1.4-.6L12 11.9l6.1-4.4H5.9Z"
+                              />
+                            </svg>
+                          </a>
+                        }
+                      </div>
+                    </article>
+                  }
+                </div>
+              </section>
+
+              @if (!$last) {
+                <div class="players-vs" aria-hidden="true">VS</div>
+              }
+            }
+          </div>
+        }
+
+        <div class="form-actions">
+          <button class="secondary-button" type="button" (click)="closePlayersModal()">Cerrar</button>
+        </div>
+      </section>
+    </div>
+  }
+</main>

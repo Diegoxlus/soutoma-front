@@ -31,6 +31,7 @@ export class AdminDashboardComponent {
     { label: 'Inicio', description: 'Resumen general', route: '/admin' },
     { label: 'Cuadros', description: 'Gestionar torneos', route: '/admin/brackets' },
     { label: 'Jugadores', description: 'Gestionar jugadores', route: '/players' },
+    { label: 'Partidos', description: 'Enfrentamientos del dia', route: '/admin/matches' },
     { label: 'Patrocinadores', description: 'Gestionar sponsors', route: '/admin/sponsors' },
   ] as const;
 

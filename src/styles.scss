@@ -22,6 +22,12 @@ body {
   box-sizing: border-box;
 }
 
+input[type="date"],
+input[type="datetime-local"] {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .admin-menu-toggle,
 .admin-menu-button,
 .admin-menu-backdrop {
@@ -169,6 +175,274 @@ body {
   height: calc(var(--connector-height) + 2px);
   border-bottom: 2px solid #c8d4e3;
   border-radius: 0 0 8px 0;
+}
+
+.admin-shell .players-toolbar-icon {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 16px;
+}
+
+.admin-shell .players-toolbar-icon::before,
+.admin-shell .players-toolbar-icon::after {
+  content: "";
+  position: absolute;
+  border: 2px solid #0a7c72;
+}
+
+.admin-shell .players-toolbar-icon::before {
+  top: 1px;
+  left: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  box-shadow: 9px 0 0 -2px #fff, 9px 0 0 0 #0a7c72;
+}
+
+.admin-shell .players-toolbar-icon::after {
+  right: 1px;
+  bottom: 0;
+  left: 1px;
+  height: 6px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom: 0;
+}
+
+.admin-shell .players-modal {
+  width: min(1120px, calc(100vw - 48px));
+  overflow-x: hidden;
+}
+
+.admin-shell .players-loading {
+  padding: 18px;
+  border: 1px solid #d9e2ef;
+  border-radius: 8px;
+  background: #fbfcfe;
+  color: #66758c;
+  font-weight: 800;
+}
+
+.admin-shell .match-players-dialog {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.admin-shell .contact-pair {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #d9e2ef;
+  border-radius: 8px;
+  background: #fbfcfe;
+}
+
+.admin-shell .contact-pair h4 {
+  margin: 0;
+  color: #0a7c72;
+  font-size: 0.86rem;
+  text-transform: uppercase;
+}
+
+.admin-shell .contact-player-list {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-shell .player-contact-card {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #e3eaf3;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgb(32 50 79 / 8%);
+}
+
+.admin-shell .player-contact-card.is-pending {
+  opacity: 0.74;
+}
+
+.admin-shell .player-contact-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.admin-shell .player-contact-main > div {
+  min-width: 0;
+}
+
+.admin-shell .contact-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  padding: 3px;
+  border: 2px solid #0a7c72;
+  border-radius: 50%;
+  background: #fff;
+  overflow: hidden;
+}
+
+.admin-shell .contact-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.admin-shell .contact-avatar span {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border-radius: 50%;
+  background: #113f67;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-shell .player-contact-main > div strong,
+.admin-shell .player-contact-main > div span {
+  display: block;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+.admin-shell .player-contact-main > div strong {
+  color: #172033;
+}
+
+.admin-shell .player-contact-main > div span {
+  color: #66758c;
+  font-size: 0.9rem;
+}
+
+.admin-shell .player-contact-card dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.admin-shell .player-contact-card dl div {
+  display: grid;
+  gap: 2px;
+}
+
+.admin-shell .player-contact-card dt {
+  color: #66758c;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.admin-shell .player-contact-card dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #26364d;
+  font-weight: 700;
+}
+
+.admin-shell .contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-self: end;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.admin-shell .contact-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #b8c6d8;
+  border-radius: 6px;
+  background: #eef3f8;
+  color: #113f67;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.admin-shell .contact-actions .contact-action-icon {
+  width: 42px;
+  min-height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  color: #fff;
+  box-shadow: 0 10px 20px rgb(17 63 103 / 14%);
+}
+
+.admin-shell .contact-actions .contact-action-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.admin-shell .contact-actions .contact-action-icon--whatsapp {
+  border-color: #128c7e;
+  background: linear-gradient(135deg, #25d366, #128c7e);
+}
+
+.admin-shell .contact-actions .contact-action-icon--phone {
+  border-color: #113f67;
+  background: linear-gradient(135deg, #2f80ed, #113f67);
+}
+
+.admin-shell .contact-actions .contact-action-icon--gmail {
+  border-color: #d93025;
+  background: linear-gradient(135deg, #ea4335, #fbbc05);
+}
+
+.admin-shell .contact-actions .contact-action-icon:hover {
+  transform: translateY(-1px);
+}
+
+.admin-shell .contact-actions a:not(.contact-action-icon):first-child {
+  border-color: #0a7c72;
+  background: #e8f7f5;
+  color: #0a7c72;
+}
+
+.admin-shell .players-vs {
+  align-self: center;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+  background: #113f67;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+@media (max-width: 760px) {
+  .admin-shell .match-players-dialog {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell .players-vs {
+    justify-self: center;
+  }
 }
 
 @media (max-width: 720px) {
